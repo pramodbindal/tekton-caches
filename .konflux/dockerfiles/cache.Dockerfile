@@ -26,5 +26,5 @@ LABEL \
       io.openshift.tags="pipelines,tekton,openshift,tekton-caches"
 
 RUN microdnf install -y shadow-utils
-RUN groupadd -r -g 65532 nonroot && useradd --no-log-init -r -u 65532 -g nonroot nonroot
+RUN groupadd -r -g 65532 nonroot && useradd --no-log-init -rm -u 65532 -g nonroot nonroot
 USER 65532
