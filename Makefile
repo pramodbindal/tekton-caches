@@ -5,6 +5,18 @@ GOLANGCI_LINT=golangci-lint
 TIMEOUT_UNIT = 20m
 GOFUMPT=gofumpt
 
+BIN = $(CURDIR)/.bin
+# release directory where the Tekton resources are rendered into.
+RELEASE_VERSION=0.1.0
+RELEASE_DIR ?= /tmp/tekton-caches-${RELEASE_VERSION}
+$(BIN):
+	@mkdir -p $@
+CATALOGCD = $(or ${CATALOGCD_BIN},${CATALOGCD_BIN},$(BIN)/catalog-cd)
+$(BIN)/catalog-cd: $(BIN)
+	curl -fsL https://github.com/openshift-pipelines/catalog-cd/releases/download/v0.3.0/catalog-cd_0.3.0_linux_x86_64.tar.gz | tar xzf - -C $(BIN) catalog-cd
+
+
+
 e2e-coverage: ## run e2e tests with coverage
 	tests/e2e.sh
 	@go test -v -failfast -count=1 -tags=$(E2E_TAG) ./tests -coverpkg=./... -coverprofile /tmp/coverage.out
@@ -42,3 +54,20 @@ fumpt:
 help: ## print this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
+#Release
+# pepare a release
+.PHONY: prepare-release
+prepare-release:
+	mkdir -p $(RELEASE_DIR) || true
+	hack/release.sh $(RELEASE_DIR)
+
+
+.PHONY: release
+release: ${CATALOGCD} prepare-release
+	pushd ${RELEASE_DIR} && \
+		$(CATALOGCD) release \
+			--output release \
+			--version $(RELEASE_VERSION) \
+			stepactions/* \
+		; \
+	popd
