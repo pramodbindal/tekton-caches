@@ -7,7 +7,7 @@ GOFUMPT=gofumpt
 
 BIN = $(CURDIR)/.bin
 # release directory where the Tekton resources are rendered into.
-RELEASE_VERSION=0.1.1
+RELEASE_VERSION=v0.1.1
 RELEASE_DIR ?= /tmp/tekton-caches-${RELEASE_VERSION}
 $(BIN):
 	@mkdir -p $@
