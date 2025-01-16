@@ -7,7 +7,7 @@ GOFUMPT=gofumpt
 
 BIN = $(CURDIR)/.bin
 # release directory where the Tekton resources are rendered into.
-RELEASE_VERSION=0.1.0
+RELEASE_VERSION=0.1.1
 RELEASE_DIR ?= /tmp/tekton-caches-${RELEASE_VERSION}
 $(BIN):
 	@mkdir -p $@
@@ -71,3 +71,17 @@ release: ${CATALOGCD} prepare-release
 			stepactions/* \
 		; \
 	popd
+
+# tags the repository with the RELEASE_VERSION and pushes to "origin"
+git-tag-release-version:
+	if ! git rev-list "${RELEASE_VERSION}".. >/dev/null; then \
+		git tag "$(RELEASE_VERSION)" && \
+			git push origin --tags; \
+	fi
+
+# github-release
+.PHONY: github-release
+github-release: git-tag-release-version release
+	gh release create $(RELEASE_VERSION) --generate-notes && \
+	gh release upload $(RELEASE_VERSION) $(RELEASE_DIR)/release/catalog.yaml && \
+	gh release upload $(RELEASE_VERSION) $(RELEASE_DIR)/release/resources.tar.gz
