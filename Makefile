@@ -1,4 +1,6 @@
+SHELL := /usr/bin/env bash
 E2E_TAG ?= e2e
+
 REGISTRY_NAME ?= registry
 
 GOLANGCI_LINT=golangci-lint
