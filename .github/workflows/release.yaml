@@ -2,7 +2,12 @@
 name: release
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Define the version you want to release'
+        required: true
+        default: '0.0.1'
 
 jobs:
   release:
@@ -19,4 +24,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          make github-release
+          make RELEASE_VERSION=v${{github.event.inputs.version}} github-release
