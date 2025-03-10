@@ -96,6 +96,34 @@ jobs:
           tkn task start cache-fetch-go -p gitURL=https://github.com/vdemeester/go-helloworld-app -p gitRevision=main -p cachePatterns="" -p cacheURIBase=oci://${REGISTRY}/cache/go -w name=source,emptyDir= -w name=gocache,emptyDir= -w name=gomodcache,emptyDir= --showlog
           tkn taskrun list
           kubectl get taskrun -o yaml
+  publish-image:
+    name: public container image
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
+        with:
+          go-version: "1.22"
+      - id: meta
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # 5.7.0
+        with:
+          images: ghcr.io/${{ github.repository }}/cache
+          flavor: |
+            latest=${{ github.event_name != 'pull_request' }}
+      - uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # 3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: .konflux/dockerfiles/cache.Dockerfile
+          push: true
+          tags: cache:latest
+
 
   publish:
     name: publish latest
@@ -125,8 +153,3 @@ jobs:
       - uses: ko-build/setup-ko@v0.8
       - run: |
           ko publish --push=${{ github.event_name != 'pull_request' }} --base-import-paths ./cmd/cache --platform linux/arm64,linux/amd64
-      - name: Build
-        uses: docker/build-push-action@v6
-        with:
-          push: true
-          tags: cache:latest
