@@ -3,11 +3,7 @@ permissions:
 
 on:
   pull_request:
-    branches: [main]
   push:
-    branches: ["**"]
-  schedule:
-    - cron: "0 0 * * *"
   workflow_dispatch:
     inputs:
       debug_enabled:
@@ -21,7 +17,7 @@ name: build-test-publish
 jobs:
   go:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
+#    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Set up Go
@@ -129,3 +125,8 @@ jobs:
       - uses: ko-build/setup-ko@v0.8
       - run: |
           ko publish --push=${{ github.event_name != 'pull_request' }} --base-import-paths ./cmd/cache --platform linux/arm64,linux/amd64
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: cache:latest
