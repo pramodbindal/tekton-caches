@@ -8,7 +8,7 @@ on:
     inputs:
       debug_enabled:
         type: boolean
-        description: "Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)"
+        description: "Run the build with tmate-debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)"
         required: false
         default: false
 
@@ -17,7 +17,7 @@ name: build-test-publish
 jobs:
   go:
     runs-on: ubuntu-latest
-#    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
+    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Set up Go
@@ -100,8 +100,8 @@ jobs:
   publish:
     name: publish latest
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
-    needs: [go]
+#    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
+#    needs: [go]
 
     # https://docs.github.com/en/actions/reference/authentication-in-a-workflow
     permissions: write-all
