@@ -128,8 +128,8 @@ jobs:
   publish:
     name: publish latest
     runs-on: ubuntu-latest
-#    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
-#    needs: [go]
+    if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
+    needs: [go]
 
     # https://docs.github.com/en/actions/reference/authentication-in-a-workflow
     permissions: write-all
