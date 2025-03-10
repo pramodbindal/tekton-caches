@@ -106,6 +106,11 @@ jobs:
         uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # 5.7.0
         with:
           images: ghcr.io/${{ github.repository }}/cache
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=ref,event=branch
+            type=sha
           flavor: |
             latest=${{ github.event_name != 'pull_request' }}
       - name: Configure Docker authentication
@@ -126,3 +131,5 @@ jobs:
           file: .konflux/dockerfiles/cache.Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+
