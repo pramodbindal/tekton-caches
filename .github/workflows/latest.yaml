@@ -42,9 +42,9 @@ jobs:
     name: e2e tests
     runs-on: ubuntu-latest
     env:
-        KUBECONFIG: /home/runner/.kube/config.kind
+      KUBECONFIG: /home/runner/.kube/config.kind
     if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
-    needs: [go]
+    needs: [ go ]
     steps:
       - uses: ko-build/setup-ko@v0.8
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -111,6 +111,12 @@ jobs:
           images: ghcr.io/${{ github.repository }}/cache
           flavor: |
             latest=${{ github.event_name != 'pull_request' }}
+      - name: Configure Docker authentication
+        env:
+          DOCKER_CONFIG: /home/runner/.docker
+          DOCKER_JSON: ${{ secrets.DOCKER_REGISTRY_AUTH }}
+        run: |
+          echo ${DOCKER_JSON} > $DOCKER_CONFIG/config.json
       - uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # 3.3.0
         with:
           registry: ghcr.io
@@ -129,7 +135,7 @@ jobs:
     name: publish latest
     runs-on: ubuntu-latest
     if: github.repository_owner == 'openshift-pipelines' # do not run this elsewhere
-    needs: [go]
+    needs: [ go ]
 
     # https://docs.github.com/en/actions/reference/authentication-in-a-workflow
     permissions: write-all
