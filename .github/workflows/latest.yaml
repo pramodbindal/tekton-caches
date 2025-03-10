@@ -125,7 +125,7 @@ jobs:
           context: .
           file: .konflux/dockerfiles/cache.Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/cache
+#          tags: ghcr.io/${{ github.repository }}/cache
 
 
   publish:
