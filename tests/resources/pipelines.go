@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os/exec"
 	"time"
 
 	tektonv1 "github.com/tektoncd/pipeline/pkg/apis/pipeline/v1"
@@ -66,6 +67,11 @@ func WaitForPipelineRun(ctx context.Context, tc *tektonv1client.TektonV1Client, 
 			log.Printf("PipelineRun %s is %v", pr.Name, pr.Status.GetCondition(apis.ConditionSucceeded))
 			if val, err := cond(&pr.Status); val && err != nil {
 				go done()
+				cmd := exec.Command("tkn", "pipelinerun", "logs", pr.Name, "-n", DefaultNamespace)
+				out, _ := cmd.CombinedOutput()
+
+				log.Printf("PipelineRun %s logs:\n%s", pr.Name, out)
+
 				return fmt.Errorf("PipelineRun %s failed: %s", pr.Name, err.Error())
 			} else if !val {
 				continue
