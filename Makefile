@@ -22,6 +22,8 @@ $(BIN)/catalog-cd: $(BIN)
 e2e-coverage: ## run e2e tests with coverage
 	tests/e2e.sh
 	@go test -v -failfast -count=1 -tags=$(E2E_TAG) ./tests -coverpkg=./... -coverprofile /tmp/coverage.out
+	oc get pr
+	tkn pr logs -f --last
 	@go tool cover -func /tmp/coverage.out
 
 e2e: e2e-coverage

@@ -1,10 +1,13 @@
 #!/bin/bash
 
 set -x
-
+export KO_DOCKER_REPO=${KO_DOCKER_REPO:- ko.local}
 ROOT="$(git rev-parse --show-toplevel)"
 
 ko apply -R -f ${ROOT}/dev/step-action/
+
+kubectl get stepAction cache-fetch -o jsonpath="{.spec.image}"
+echo "Cache Fetch Step Action image is: $(kubectl get stepAction cache-fetch -o jsonpath="{.spec.image}")"
 
 # Apply the GCS emulator configuration
 kubectl apply -f "${ROOT}/tests/emulators/gcs-emulator.yaml"

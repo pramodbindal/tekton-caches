@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-
+REG_NAME="kind-registry"
 function start_registry() {
     running="$(docker inspect -f '{{.State.Running}}' ${REG_NAME} 2>/dev/null || echo false)"
-
     if [[ ${running} != "true" ]];then
-        docker rm -f kind-registry || true
+        docker rm -f ${REG_NAME} || true
         docker run \
                -d --restart=always -p "127.0.0.1:5000:5000" \
                -e REGISTRY_HTTP_SECRET=secret \
@@ -50,10 +49,8 @@ function wait_until_pods_running() {
 
 main() {
   start_registry
-
   install_pipeline_crd
-  kubectl -n tekton-pipelines patch cm feature-flags -p '{"data": {"enable-step-actions": "true"}}'
-
+  export KO_DOCKER_REPO=ko.local
   make e2e
 }
 
