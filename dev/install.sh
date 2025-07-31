@@ -20,7 +20,7 @@ kubectl patch configmap -n tekton-pipelines --type merge -p '{"data":{"enable-st
 #kubectl create secret generic aws-cred  --from-file=${HOME}/.aws/config --from-file=${HOME}/.aws/credentials 
 
 #Deploy Step Actions
-ko apply -BRf $SCRIPT_DIR/step-action
+kustomize build . | ko apply -Bf -
 
 # Deploy Pipelines
 kubectl apply -f $SCRIPT_DIR/pipeline

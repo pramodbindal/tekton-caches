@@ -2,24 +2,24 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  name: pipelinerun-go
+  generateName: pipelinerun-gcs-
 spec:
   pipelineRef:
-    name: pipeline-go
+    name: pipeline-gcs
   params:
     - name: repo_url
       value: https://github.com/chmouel/go-helloworld
     - name: revision
       value: main
-      # This uses OpenShift internal registry, point it to your own or the public
-      # one like docker.io or quay.io, but make sure to have a token to push
-      # attached to the serviceaccount running the pipelineRun
     - name: registry
-      value: image-registry.openshift-image-registry.svc:5000/$(context.pipelineRun.namespace)
+      value: gs://tekton-cache
     - name: buildCommand
       value: go build -v ./
     - name: image
       value: golang:1.21
   workspaces:
+    - name: cred
+      secret:
+        secretName: gcs-cred
     - name: source
       emptyDir: {}

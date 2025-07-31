@@ -63,11 +63,18 @@ spec:
                 value: $(params.revision)
           - name: cache-fetch
             ref:
-              name: cache-fetch
+              resolver: cluster
+              params:
+                - name: name
+                  value: cache-fetch
+                - name: namespace
+                  value: openshift-pipelines
+                - name: kind
+                  value: stepaction
             params:
               - name: PATTERNS
                 value: $(params.cachePatterns)
-              - name: source
+              - name: SOURCE
                 value: $(params.registry)/cache-go:{{hash}}
               - name: CACHE_PATH
                 value: $(workspaces.source.path)/cache
@@ -91,7 +98,14 @@ spec:
               echo "Cache size is $(du -sh $(workspaces.source.path)/cache)"
           - name: cache-upload
             ref:
-              name: cache-upload
+              resolver: cluster
+              params:
+                - name: name
+                  value: cache-upload
+                - name: namespace
+                  value: openshift-pipelines
+                - name: kind
+                  value: stepaction
             params:
               - name: PATTERNS
                 value: $(params.cachePatterns)

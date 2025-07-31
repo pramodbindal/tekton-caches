@@ -1,8 +1,9 @@
+#Example Pipeline to build a golang application using Tekton Pipelines with caching support.
 ---
 apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
-  name: pipeline-go
+  name: pipeline-aws
 spec:
   params:
     - name: repo_url
@@ -16,13 +17,10 @@ spec:
       default: go build -v .
     - name: cachePatterns
       type: array
-      default: ["**go.mod", "**go.sum"]
+      default: [ "**go.mod", "**go.sum" ]
     - name: image
       type: string
       default: golang:latest
-    - name: force-cache-upload
-      type: string
-      default: "false"
   workspaces:
     - name: source
   tasks:
@@ -30,10 +28,10 @@ spec:
       name: build-task
       workspaces:
         - name: source
-          workspace: source
       taskSpec:
         workspaces:
           - name: source
+          - name: cred
         params:
           - name: buildCommand
             default: $(params.buildCommand)
@@ -62,19 +60,27 @@ spec:
                 value: $(params.revision)
           - name: cache-fetch
             ref:
-              resolver: http
+              resolver: cluster
               params:
-                - name: url
-                  value: https://raw.githubusercontent.com/openshift-pipelines/tekton-caches/main/tekton/cache-fetch.yaml
+                - name: name
+                  value: cache-fetch
+                - name: namespace
+                  value: openshift-pipelines
+                - name: kind
+                  value: stepaction
             params:
-              - name: patterns
+              - name: PATTERNS
                 value: $(params.cachePatterns)
-              - name: source
-                value: oci://$(params.registry)/cache-go:{{hash}}
-              - name: cachePath
+              - name: SOURCE
+                value: $(params.registry)/cache-go:{{hash}}
+              - name: CACHE_PATH
                 value: $(workspaces.source.path)/cache
-              - name: workingdir
+              - name: WORKING_DIR
                 value: $(workspaces.source.path)/repo
+              - name: AWS_CONFIG_FILE
+                value: $(workspaces.cred.path)/config
+              - name: AWS_SHARED_CREDENTIALS_FILE
+                value: $(workspaces.cred.path)/credentials
           - image: $(params.image)
             workingDir: $(workspaces.source.path)/repo
             name: run-go-build
@@ -90,18 +96,24 @@ spec:
               echo "Cache size is $(du -sh $(workspaces.source.path)/cache)"
           - name: cache-upload
             ref:
-              resolver: http
+              resolver: cluster
               params:
-                - name: url
-                  value: https://raw.githubusercontent.com/openshift-pipelines/tekton-caches/main/tekton/cache-upload.yaml
+                - name: name
+                  value: cache-upload
+                - name: namespace
+                  value: openshift-pipelines
+                - name: kind
+                  value: stepaction
             params:
-              - name: patterns
+              - name: PATTERNS
                 value: $(params.cachePatterns)
-              - name: target
-                value: oci://$(params.registry)/cache-go:{{hash}}
-              - name: cachePath
+              - name: TARGET
+                value: $(params.registry)/cache-go:{{hash}}
+              - name: CACHE_PATH
                 value: $(workspaces.source.path)/cache
-              - name: workingdir
+              - name: WORKING_DIR
                 value: $(workspaces.source.path)/repo
-              - name: force-cache-upload
-                value: $(params.force-cache-upload)
+              - name: AWS_CONFIG_FILE
+                value: $(workspaces.cred.path)/config
+              - name: AWS_SHARED_CREDENTIALS_FILE
+                value: $(workspaces.cred.path)/credentials
